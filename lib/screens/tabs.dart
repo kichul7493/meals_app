@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meals_app/providers/favorites_provider.dart';
+import 'package:meals_app/providers/filters_provider.dart';
+import 'package:meals_app/providers/meals_provider.dart';
 import 'package:meals_app/screens/categories.dart';
 import 'package:meals_app/screens/filters.dart';
 import 'package:meals_app/screens/meals.dart';
 import 'package:meals_app/widgets/main_drawer.dart';
 
-class Tabs extends StatefulWidget {
+class Tabs extends ConsumerStatefulWidget {
   const Tabs({super.key});
 
   @override
-  State<Tabs> createState() => _TabsState();
+  ConsumerState<Tabs> createState() => _TabsState();
 }
 
-class _TabsState extends State<Tabs> {
+class _TabsState extends ConsumerState<Tabs> {
   var _selectedPageIndex = 0;
-  var _filters = {
-    Filter.gluten: false,
-    Filter.lactose: false,
-    Filter.vegetarian: false,
-    Filter.vegan: false,
-  };
 
   void _selectPage(int index) {
     setState(() {
@@ -30,26 +28,24 @@ class _TabsState extends State<Tabs> {
     Navigator.of(context).pop();
 
     if (identifier == "Settings") {
-      final result = await Navigator.of(context)
-          .push<Map<Filter, bool>>(MaterialPageRoute(builder: (context) {
-        return Filters(filters: _filters);
+      await Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+        return const Filters();
       }));
-      setState(() {
-        if (result != null) {
-          _filters = result;
-        }
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget activePage = CategoriesScreen(filters: _filters);
+    final availableMeals = ref.watch(filteredMealsProvider);
+
+    final favoriteMeals = ref.watch(favoritesProvider);
+
+    Widget activePage = CategoriesScreen(meals: availableMeals);
     String pageTitle = "Categories";
 
     if (_selectedPageIndex == 1) {
       pageTitle = "Favourites";
-      activePage = const MealScreen(meals: []);
+      activePage = MealScreen(meals: favoriteMeals);
     }
 
     return Scaffold(

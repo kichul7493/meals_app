@@ -1,40 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meals_app/providers/filters_provider.dart';
 import 'package:meals_app/widgets/meal_filter.dart';
 
-enum Filter {
-  gluten,
-  lactose,
-  vegetarian,
-  vegan,
-}
-
-class Filters extends StatefulWidget {
-  const Filters({super.key, required this.filters});
-
-  final Map<Filter, bool> filters;
+class Filters extends ConsumerStatefulWidget {
+  const Filters({super.key});
 
   @override
-  State<Filters> createState() => _FiltersState();
+  ConsumerState<Filters> createState() => _FiltersState();
 }
 
-class _FiltersState extends State<Filters> {
-  var _glutenFreeFilterSet = false;
-  var _lactoseFreeFilterSet = false;
-  var _vegetarianFilterSet = false;
-  var _veganFilterSet = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _glutenFreeFilterSet = widget.filters[Filter.gluten] ?? false;
-    _lactoseFreeFilterSet = widget.filters[Filter.lactose] ?? false;
-    _vegetarianFilterSet = widget.filters[Filter.vegetarian] ?? false;
-    _veganFilterSet = widget.filters[Filter.vegan] ?? false;
-  }
-
+class _FiltersState extends ConsumerState<Filters> {
   @override
   Widget build(BuildContext context) {
+    final filters = ref.watch(filtersProvider);
+    final setFilter = ref.read(filtersProvider.notifier).setFilter;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Your Filters"),
@@ -44,50 +25,37 @@ class _FiltersState extends State<Filters> {
         onPopInvoked: (didPop) {
           if (didPop) return;
 
-          Navigator.of(context).pop({
-            Filter.gluten: _glutenFreeFilterSet,
-            Filter.lactose: _lactoseFreeFilterSet,
-            Filter.vegetarian: _vegetarianFilterSet,
-            Filter.vegan: _veganFilterSet,
-          });
+          Navigator.of(context).pop();
         },
         child: Column(
           children: [
             MealFilter(
-              filterSet: _glutenFreeFilterSet,
+              filterSet: filters[Filter.glutenFree]!,
               onChanged: (value) {
-                setState(() {
-                  _glutenFreeFilterSet = value;
-                });
+                setFilter(Filter.glutenFree, value);
               },
               title: "Gluten",
               subtitle: "Only include gluten-free meals.",
             ),
             MealFilter(
-                filterSet: _lactoseFreeFilterSet,
+                filterSet: filters[Filter.lactoseFree]!,
                 onChanged: (value) {
-                  setState(() {
-                    _lactoseFreeFilterSet = value;
-                  });
+                  setFilter(Filter.lactoseFree, value);
                 },
                 title: "Lactose",
                 subtitle: "Only include lactose-free meals."),
             MealFilter(
-              filterSet: _vegetarianFilterSet,
+              filterSet: filters[Filter.vegetarian]!,
               onChanged: (value) {
-                setState(() {
-                  _vegetarianFilterSet = value;
-                });
+                setFilter(Filter.vegetarian, value);
               },
               title: "Vegetarian",
               subtitle: "Only include vegetarian meals.",
             ),
             MealFilter(
-              filterSet: _veganFilterSet,
+              filterSet: filters[Filter.vegan]!,
               onChanged: (value) {
-                setState(() {
-                  _veganFilterSet = value;
-                });
+                setFilter(Filter.vegan, value);
               },
               title: "Vegan",
               subtitle: "Only include vegan meals.",
